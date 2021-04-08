@@ -1,0 +1,19 @@
+---
+title: "eda"
+author: "Marium Tapal"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+library(here)
+```
+
+```{r load data}
+social_media <- read_csv("~/Downloads/DC5-Data/Y*Int Social Media Data/YInt.csv") 
+static_sensor_locations <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
+static_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
+mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
+mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") 
+```
+
