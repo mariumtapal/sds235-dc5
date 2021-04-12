@@ -1,0 +1,108 @@
+---
+title: "enesmith"
+author: "Elisabeth Nesmith"
+date: "4/8/2021"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+library(here)
+library(plotly)
+```
+
+```{r load data}
+social_media <- read_csv("~/Downloads/SDS 235/DC5-Data/Y*Int Social Media Data/YInt.csv") 
+static_sensor_locations <- read_csv("~/Downloads/SDS 235/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
+static_sensor_readings <- read_csv("~/Downloads/SDS 235/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
+mobile_sensor_readings <- read_csv("~/Downloads/SDS 235/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
+mc1_reports_data <- read_csv("~/Downloads/SDS 235/DC5-Data/Damage Reports/mc1-reports-data.csv") 
+```
+
+Questions to answer:
+
+Compare the reliability of neighborhood reports. Which neighborhoods are providing reliable reports? Provide a rationale for your response.
+
+Compare radiation measurements over time from both static and mobile sensors to identify areas where elevated radiation is detected. How does this change over time? How should the risk of radiation damage be mitigated?
+
+Looking at:
+
+MC1 reports
+static sensor readings
+mobile sensor readings
+
+```{r}
+#looking at MC1 reports
+#grouping by location
+#calculating average of each variable
+
+mc1_averages <- aggregate(mc1_reports_data[, 2:7], list(mc1_reports_data$location), mean, na.rm = TRUE)
+```
+
+```{r}
+#visualize the averages for each category across locations
+
+#sewer and water plot
+fig1 <- plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$sewer_and_water,
+  name = "Citizen-Reported Sewer and Water Damage by Neighborhood",
+  type = "bar"
+)
+
+fig1
+```
+
+Location 7 had the highest average of reported damage to sewer and water at 8.5, followed by locations 8, 9, and 3 with averages of 7.49, 7.45, and 7.27 respectively.
+
+Locations and corresponding neighborhoods on map:
+1. Palace Hills
+2. Northwest
+3. Old Town
+4. Safe Town
+5. Southwest
+6. Downtown
+7. Wilson Forest
+8. Scenic Vista
+9. Broadview
+10. Chapparal
+11. Terrapin Springs
+12. Pepper Mill
+13. Cheddarford
+14. Easton
+15. Weston
+16. Southton
+17. Oak Willow
+18. East Parton
+19. West Parton
+
+```{r}
+#scaling map to coordinates and plotting locations of static sensors
+fig1 <- static_sensor_locations %>%
+  plot_ly(
+    x = ~Long,
+    y = ~Lat,
+    type = "scatter",
+    mode = "markers",
+    text = ~`Sensor-id`
+  ) %>%
+  layout(
+    title = "Locations of Static Sensors",
+    images = list(
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      xref = "x",
+      yref = "y",
+      x = -120,
+      y = 0.2385,
+      sizex = 0.2883,
+      sizey = 0.2385,
+      sizing = "stretch",
+      opacity = 1,
+      layer = "below"
+    )
+  )
+
+fig1
+```
+
+
