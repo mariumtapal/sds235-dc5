@@ -34,7 +34,7 @@ mobile sensor readings
 ```{r}
 #looking at MC1 reports
 #grouping by location
-#calculating average of each variable
+#calculating average of each variable (average across 4/6-4/11)
 
 mc1_averages <- aggregate(mc1_reports_data[, 2:7], list(mc1_reports_data$location), mean, na.rm = TRUE)
 ```
@@ -43,38 +43,18 @@ mc1_averages <- aggregate(mc1_reports_data[, 2:7], list(mc1_reports_data$locatio
 #visualize the averages for each category across locations
 
 #sewer and water plot
-fig1 <- plot_ly(
+fig <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$sewer_and_water,
   name = "Citizen-Reported Sewer and Water Damage by Neighborhood",
   type = "bar"
 )
 
-fig1
+fig
 ```
 
 Location 7 had the highest average of reported damage to sewer and water at 8.5, followed by locations 8, 9, and 3 with averages of 7.49, 7.45, and 7.27 respectively.
 
-Locations and corresponding neighborhoods on map:
-1. Palace Hills
-2. Northwest
-3. Old Town
-4. Safe Town
-5. Southwest
-6. Downtown
-7. Wilson Forest
-8. Scenic Vista
-9. Broadview
-10. Chapparal
-11. Terrapin Springs
-12. Pepper Mill
-13. Cheddarford
-14. Easton
-15. Weston
-16. Southton
-17. Oak Willow
-18. East Parton
-19. West Parton
 
 ```{r}
 #scaling map to coordinates and plotting locations of static sensors
@@ -104,5 +84,72 @@ fig1 <- static_sensor_locations %>%
 
 fig1
 ```
+
+```{r}
+#wrangling static sensor readings to get averages for each sensor across the six days (4/6 - 4/11) and creating new variable to correspond to location in mc1 reports, then joining by location
+
+static_averages <- static_sensor_readings %>% 
+  mutate(Group.1 = if_else(`Sensor-id` == 1, 1, 
+                           if_else(`Sensor-id` == 4, 6,
+                                   if_else(`Sensor-id` == 6, 5,
+                                           if_else(`Sensor-id` == 9, 3,
+                                                   if_else(`Sensor-id` == 11, 9,
+                                                           if_else(`Sensor-id` == 14, 13, 4))))))) %>%
+  group_by(Group.1) %>% 
+  summarize(average = mean(Value)) %>% 
+  right_join(mc1_averages, by = 'Group.1')
+```
+
+```{r}
+#visualize averages of static sensor data by location
+fig2 <- plot_ly(
+  x = static_averages$Group.1,
+  y = static_averages$average,
+  name = "Average Radiation Levels of Static Sensors by Neighborhood",
+  type = "bar"
+)
+
+fig2
+```
+
+The neighborhood with the highest average radiation over the course of the six days, according to the static sensor data, is neighborhood 3 at 17.103 cpm, followed by neighborhood 4 at 16.245 cpm and neighborhood 9 at 15.835 cpm. However, because the static sensors are only located in neighborhoods 1, 3, 4, 5, 6, 9, and 13, this doesn't give us a full picture of the radiation at every neighborhood. It does make sense that neighborhoods 3 and 4 were most affected though, as they have pretty close proximity to the nuclear power plant.
+
+```{r}
+#not helpful/incorrect graph
+#side by side bar plot of static sensor averages and mc1 averages (shake intensity)
+fig3 <- plot_ly(static_averages, x = ~Group.1, y = ~shake_intensity, type = 'bar', name = 'Shake Intensity')
+fig3 <- fig3 %>% add_trace(y = ~average, name = 'Average Radiation from Sensors (cpm)')
+fig3 <- fig3 %>% add_trace(y = ~(average-shake_intensity), name = 'Difference Between Shake Intensity and Average')
+fig3 <- fig3 %>% layout(yaxis = list(title = 'Average Radiation and Shake Intensity'), barmode = 'group')
+
+fig3
+```
+
+```{r}
+#create map of static sensor 
+#load packages and shapefile
+
+library(leaflet)
+library(raster)
+
+system("unzip StHimarkNeighborhoodShapefiles.zip")
+```
+
+```{r}
+# Read this shape file with the rgdal library. 
+shape <- readOGR(dsn = "StHimarkNeighborhoodShapefiles", layer = "StHimark")
+```
+
+
+
+```{r}
+map <- ggplot() + 
+  geom_polygon(data = shape, aes(x = long, y = lat), colour = "black", fill = NA)
+
+ggplotly(p = map)
+```
+
+
+
 
 
