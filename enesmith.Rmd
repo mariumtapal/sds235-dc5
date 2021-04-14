@@ -144,12 +144,42 @@ shape <- readOGR(dsn = "StHimarkNeighborhoodShapefiles", layer = "StHimark")
 
 ```{r}
 map <- ggplot() + 
-  geom_polygon(data = shape, aes(x = long, y = lat), colour = "black", fill = NA)
-
-ggplotly(p = map)
+  geom_polygon(data = shape, aes(x = long, y = lat), colour = "black", fill = NA) 
 ```
 
+```{r}
+#join static sensor locations with static sensor readings
+static_sensors <- static_sensor_readings %>% 
+  inner_join(static_sensor_locations, by = 'Sensor-id') %>%
+  mutate(sensor_id = as.character(`Sensor-id`)) %>% 
+  mutate(year = lubridate::year(Timestamp), 
+                month = lubridate::month(Timestamp), 
+                day = lubridate::day(Timestamp)) 
+  
 
+#plot sensor readings overtime
+fig3 <- plot_ly(data = static_sensors, 
+                x = ~day, 
+                y = ~Value, 
+                text = ~ sensor_id,
+                type = 'scatter',
+                mode = 'lines')
+fig3
+```
+
+```{r}
+#ggplot of sensors
+
+fig4 <- ggplot(data = static_sensors, mapping = aes(x = day, y = Value, color = sensor_id)) +
+  geom_line()+
+  facet_wrap(~sensor_id)
+
+ggplotly(p = fig4)
+```
+
+Sensor 1, located in Palace Hills, had the highest recorded radiation on April 9th. Sensor 11, located in Broadview, had the highest recorded radiation on April 6th. Sensor 12, located in Safe Town (where the nuclear plant is), had the highest recorded radiation on April 9th. Sensor 13, also located in Safe Town, had the highest recorded radiation on April 7th, but levels were relatively even from the 7th through the 10th. Sensor 14, located in Cheddarford, had highest levels on April 8th. Sensor 15, the sensor closest to the nuclear plant, had highest levels on April 8th. Sensor 4, located in Downtown, had highest radiation on April 10th. Sensor 6 in Southwest had highest levels on April 10th, though this was still comparitively low. Finally, Sensor 9 in Old Town had the highest levels on April 9th, but they were also very high on the 7th. 
+
+Sensors 11, 13, 14, 15, and 9 all had peaks on the earlier side (between the 6th and the 8th) compared to the others. This makes sense because all of these sensors are in closer proximity to the plant, and therefore would be exposed to radiation earlier on. 11 is a little strange, though, because it is farther from the plant away than 13, 14, 15, and 9 but had very high levels on the 6th and 7th, then very low levels on the 8th. What does this mean?
 
 
 
