@@ -1,0 +1,72 @@
+---
+title: "Lauren Low"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+library(here)
+library(stringr)
+library(readr)
+library(data.table)
+library(vroom)
+library(readtext)
+library(textrank)
+library(tidytext)
+library(tidyr)
+```
+
+```{r load data}
+social_media <- read_csv("~/Desktop/DC5-Data/Y*Int Social Media Data/YInt.csv") 
+static_sensor_locations <- read_csv("~/Desktop/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
+static_sensor_readings <- read_csv("~/Desktop/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
+mobile_sensor_readings <- read_csv("~/Desktop/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
+mc1_reports_data <- read_csv("~/Desktop/DC5-Data/Damage Reports/mc1-reports-data.csv") 
+```
+
+```{r determine most frequent locations posts were made from}
+freq_location <- social_media %>%
+  group_by(location) %>%
+  count(location, sort = TRUE)
+freq_location
+
+# could use date as input variable for shiny
+freq_location_plot <-ggplot(data = freq_location, aes(x = reorder(location, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Locations Where Post Were Most Frequently Shared", x = "Location", y = "Number of Posts per Location") 
+freq_location_plot
+```
+
+```{r determine most frequent account}
+# might want to consider taking out accounts with the word syndicated
+freq_acct <- social_media %>%
+  count(account, sort = TRUE) %>%
+  slice(1:25) %>%
+  filter(rank(desc(n))>0)
+freq_acct
+
+# could use date and location as input variables for shiny
+freq_acct_plot <-ggplot(data = freq_acct, aes(x = reorder(account, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Accounts That Posted Most Frequently", x = "Account", y = "Number of Posts per Account") 
+freq_acct_plot
+```
+
+```{r}
+word_col <- social_media %>% 
+   unnest_tokens(output = word, input = message) 
+ 
+# removes stop words like "the", "and", "before", "after", "such", "as", etc.
+no_stops  <- word_col  %>%
+  anti_join(stop_words)
+
+# finds most common word and counts
+common_words <- no_stops %>%
+  count(word, sort = TRUE) %>%
+  slice(1:25) %>%
+  filter(rank(desc(n))>0)
+common_words
+```
+
