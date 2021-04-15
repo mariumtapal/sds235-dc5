@@ -51,4 +51,17 @@ ggplot(mc1_reports_data_long, aes(time, variable)) +
 # ggplot(mc1_reports_data_long, aes(variable, location)) +                 
 #   geom_tile(aes(fill = value))
 ```
+can answer: 
+
+Emergency responders will base their initial response on the earthquake shake map, but their response may change based on damage reports from citizens on the ground. How would you prioritize neighborhoods for response?
+
+Compare the reliability of neighborhood reports. Which neighborhoods are providing reliable reports? Provide a rationale for your response.
+
+Compare radiation measurements over time from both static and mobile sensors to identify areas where elevated radiation is detected. How does this change over time? How should the risk of radiation damage be mitigated?
+
+Characterize conditions across the city, and recommend how resources should be allocated at 5 hours and 30 hours after the earthquake. Include evidence from the data to support these recommendations. Consider how to allocate resources such as road crews, sewer repair crews, power, and rescue teams.
+
+Identify any times when conditions change in a way that warrants a re-allocation of city resources. What were the conditions before and after the inflection point? What locations were affected? Which resources are involved?
+
+The data in this challenge can be analyzed either as a static collection or as a dynamic stream of data, as it would occur in a real emergency. Can you find a way to bring your analysis online to fuse multiple data streams together as events are unfolding? 
 
