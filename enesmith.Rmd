@@ -53,8 +53,70 @@ fig <- plot_ly(
 fig
 ```
 
-Location 7 had the highest average of reported damage to sewer and water at 8.5, followed by locations 8, 9, and 3 with averages of 7.49, 7.45, and 7.27 respectively.
+Looking at the shake map, it appears that locations 3, 4, 7, and 12 would have experienced the brunt of the quake. Locations 1, 5, 6, and 9 would be some of the least affected.
 
+Location 7 had the highest average of reported damage to sewer and water at 8.5, followed by locations 8, 9, and 3 with averages of 7.49, 7.45, and 7.27 respectively. 12 has one of the lowest averages at 3.18.
+
+```{r}
+#power plot
+plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$power,
+  name = "Citizen-Reported Power Damage by Neighborhood",
+  type = "bar"
+)
+```
+
+Neighborhood 3 had the highest average rating at 8.46, followed by 7 at 7.83, 11 at 7.69, and 10 at 7.61.
+```{r}
+#roads and bridges plot
+plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$roads_and_bridges,
+  name = "Citizen-Reported Roads and Bridges Damage by Neighborhood",
+  type = "bar"
+)
+```
+
+8 has highest average of road and bridge damage at 7.65, followed by 3 at 7.26, 9 at 6.59, and 14 at 6.27.
+
+```{r}
+#medical plot
+plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$medical,
+  name = "Citizen-Reported Medical Damage by Neighborhood",
+  type = "bar"
+)
+```
+
+3 has highest average of medical damage at 7.05, followed by 7 at 6, 15 at 5.53, and 4 at 5.42.
+
+```{r}
+#buildings plot
+plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$buildings,
+  name = "Citizen-Reported Building Damage by Neighborhood",
+  type = "bar"
+)
+```
+
+10 is highest at 6.35, followed by 9 at 6.16, 3 at 5.83, and 8 at 5.78. 
+
+```{r}
+#shake intensity plot
+plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$shake_intensity,
+  name = "Citizen-Reported Shake Intensity by Neighborhood",
+  type = "bar"
+)
+```
+
+As we would suspect from the shake map, 3, 4, 7, and 12 have the highest shake intensities by far. 
+
+It seems like 3 is a pretty reliable neighborhood, as it experienced the brunt of the quake and was consistently in the top averages for each damage category. 7 and 8 were also up there a lot, which makes sense as they were also in range of the shake map. However, 4 and 12 were two of the neighborhoods who felt the quake most strongly but consistently reported lower damages. Additionally, 9 was in the top numbers a lot but was one of the locations that would have been least affected. 
 
 ```{r}
 #scaling map to coordinates and plotting locations of static sensors
@@ -125,15 +187,6 @@ fig3 <- fig3 %>% layout(yaxis = list(title = 'Average Radiation and Shake Intens
 fig3
 ```
 
-```{r}
-#create map of static sensor 
-#load packages and shapefile
-
-library(leaflet)
-library(raster)
-
-system("unzip StHimarkNeighborhoodShapefiles.zip")
-```
 
 ```{r}
 # Read this shape file with the rgdal library. 
@@ -181,5 +234,160 @@ Sensor 1, located in Palace Hills, had the highest recorded radiation on April 9
 
 Sensors 11, 13, 14, 15, and 9 all had peaks on the earlier side (between the 6th and the 8th) compared to the others. This makes sense because all of these sensors are in closer proximity to the plant, and therefore would be exposed to radiation earlier on. 11 is a little strange, though, because it is farther from the plant away than 13, 14, 15, and 9 but had very high levels on the 6th and 7th, then very low levels on the 8th. What does this mean?
 
+```{r}
+#looking at mobile sensor data
+#picking random number of sensor to look at
+set.seed(35)
+sample (c(1:50), size=1)
 
+#make new mobile sensor data set that only includes rows every 2 minutes
+mobile_condensed = mobile_sensor_readings[seq(1, nrow(mobile_sensor_readings), 24), ]
+
+#filter new dataset to just include #10 and April 8th
+mobile_condensed %>% 
+  filter(`Sensor-id` == 10) %>% 
+  filter(Timestamp >= '2020-04-08 00:00:00' & Timestamp < '2020-04-09 00:00:00') %>% 
+  mutate(Timestamp = as.character(Timestamp)) %>% 
+  plot_ly(
+    x = ~Long,
+    y = ~Lat,
+    type = "scatter",
+    mode = "markers",
+    text = ~`Value`,
+    size = ~Value,
+    colors = 'black',
+    frame = ~Timestamp
+  ) %>%
+  layout(
+    title = "Mobile Sensor 10 Readings on April 8th",
+    images = list(
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      xref = "x",
+      yref = "y",
+      x = -120,
+      y = 0.2385,
+      sizex = 0.2883,
+      sizey = 0.2385,
+      sizing = "stretch",
+      opacity = 1,
+      layer = "below"
+    )
+  )
+```
+Because there were so many data points for the mobile sensor readings, I condensed them to only include ever 24 rows, which would roughly be a reading ever two minutes instead of every five seconds. Then I randomly chose a sensor number to look at, number 10. By looking at the shake maps and the graph of the static sensors, I decided April 8th would be a good day to look at radiation activity.
+
+At 16:40 on April 8th, the sensor readings start to increase dramatically, going from 21 cpu to 300 five minutes later to over 1000 shortly after 17:00. It continues to hover around 1300 cpu until about 20:53, when it starts to drop. It continues to drop until 21:57, when this sensor finally moves. This whole time it has been on the edge of Old Town and Safe Town, pretty close to where the nuclear plant is. It would make sense, then, that the earthquake happened around or slightly before 16:40 on the 8th.  
+
+Because the static sensors do not cover every neighborhood, I wanted to get a sense of radiation levels in the middle of the area (locations 14, 15, 16, 17, 18, and 19). I filtered the condensed mobile sensors to include the latitude and longitude of those areas and then grouped by sensor id to see which sensors were traveling most in these areas.
+
+```{r}
+#filter to latitude and longitude 
+mobile_condensed %>% 
+  filter(Long > -119.9 & Long < -119.82) %>% 
+  filter(Lat > .08 & Lat < .16) %>% 
+  group_by(`Sensor-id`) %>% 
+  count(`Sensor-id`, sort = TRUE)
+```
+
+Because sensor 39 has the highest number of recordings in this section, I'm going to look at sensor 39 recordings on April 8th, the day the earthquake seems to happen, and April 9th, the day after.
+
+```{r}
+#looking at sensor 39 on april 8th
+mobile_condensed %>% 
+  filter(`Sensor-id` == 39) %>% 
+  filter(Timestamp >= '2020-04-08 00:00:00' & Timestamp < '2020-04-09 00:00:00') %>% 
+  mutate(Timestamp = as.character(Timestamp)) %>% 
+  plot_ly(
+    x = ~Long,
+    y = ~Lat,
+    type = "scatter",
+    mode = "markers",
+    text = ~Value,
+    size = ~Value,
+    frame = ~Timestamp
+  ) %>%
+  layout(
+    title = "Mobile Sensor 39 Readings on April 8th",
+    images = list(
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      xref = "x",
+      yref = "y",
+      x = -120,
+      y = 0.2385,
+      sizex = 0.2883,
+      sizey = 0.2385,
+      sizing = "stretch",
+      opacity = 1,
+      layer = "below"
+    )
+  )
+```
+
+There doesn't seem to be a whole lot of unusual activity in this area on April 8th. The sensor moves around some but spends a lot of time in Neighborhood 6, where the radiation fluctuates between about 35 and 45 cpu. At the time we suspect the earthquake to happen (around 16:40), the sensor is in Neighborhood 5 and continues to record radiation between 35 and 45. 
+
+```{r}
+#looking at sensor 39 on april 9th
+mobile_condensed %>% 
+  filter(`Sensor-id` == 39) %>% 
+  filter(Timestamp >= '2020-04-09 00:00:00' & Timestamp < '2020-04-10 00:00:00') %>% 
+  mutate(Timestamp = as.character(Timestamp)) %>% 
+  plot_ly(
+    x = ~Long,
+    y = ~Lat,
+    type = "scatter",
+    mode = "markers",
+    text = ~Value,
+    size = ~Value,
+    frame = ~Timestamp
+  ) %>%
+  layout(
+    title = "Mobile Sensor 39 Readings on April 9th",
+    images = list(
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      xref = "x",
+      yref = "y",
+      x = -120,
+      y = 0.2385,
+      sizex = 0.2883,
+      sizey = 0.2385,
+      sizing = "stretch",
+      opacity = 1,
+      layer = "below"
+    )
+  )
+```
+
+April 9th is about the same as April 8th. Let's look at April 6th to compare.
+
+```{r}
+#looking at sensor 39 on april 6th
+mobile_condensed %>% 
+  filter(`Sensor-id` == 39) %>% 
+  filter(Timestamp >= '2020-04-06 00:00:00' & Timestamp < '2020-04-07 00:00:00') %>% 
+  mutate(Timestamp = as.character(Timestamp)) %>% 
+  plot_ly(
+    x = ~Long,
+    y = ~Lat,
+    type = "scatter",
+    mode = "markers",
+    text = ~Value,
+    size = ~Value,
+    frame = ~Timestamp
+  ) %>%
+  layout(
+    title = "Mobile Sensor 39 Readings on April 6th",
+    images = list(
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      xref = "x",
+      yref = "y",
+      x = -120,
+      y = 0.2385,
+      sizex = 0.2883,
+      sizey = 0.2385,
+      sizing = "stretch",
+      opacity = 1,
+      layer = "below"
+    )
+  )
+```
 
