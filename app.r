@@ -13,7 +13,21 @@ ui <- fluidPage(
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(
-      dateRangeInput("dates", "Date range", start = "2020-04-06", end = "2020-04-10")
+      dateRangeInput("dates", 
+                     h4("Date range"), 
+                     start = "2020-04-06", end = "2020-04-10"), 
+      checkboxGroupInput("checkGroup", 
+                         h4("Account"), 
+                         choices = list("DerekNolan" = 1, 
+                                        "ChloeJohnson" = 2, 
+                                        "___3333___" = 3),
+                         selected = c("1", "2", "3")), 
+      selectInput("select", 
+                  h4("Location"), 
+                  choices = list("All" = 1, 
+                                 "Downtown" = 2,
+                                 "Weston" = 3), 
+                  selected = 1)
     ),
     
     # Show a plot of the generated distribution
@@ -36,6 +50,7 @@ server <- function(input, output) {
     read_csv()
   mc1_reports_data <- here::here("data/Damage Reports/mc1-reports-data.csv") %>%
     read_csv()
+  
   
   
   
