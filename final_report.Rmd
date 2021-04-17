@@ -1,0 +1,37 @@
+---
+title: '**DC5: Final Report**'
+author: "Marium Tapal, Eleni Partakki, Lauren Low, Elisabeth Nesmith"
+date: "20 April 2021"
+output: 
+  html_document:
+    code_folding: hide
+    theme: sandstone
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE
+)
+```
+
+```{r packages, message=FALSE}
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(here)
+library(lubridate)
+library(plotly)
+library(mosaic)
+library(datapasta)
+library(patchwork)
+```
+
+```{r load-data, message=FALSE}
+social_media <- read_csv("~/Downloads/DC5-Data/Y*Int Social Media Data/YInt.csv") 
+static_sensor_locations <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
+static_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
+mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
+mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") %>% mutate(location = as.factor(location))
+```
