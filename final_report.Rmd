@@ -1,0 +1,56 @@
+---
+title: '**DC5: Final Report**'
+author: "Marium Tapal, Eleni Partakki, Lauren Low, Elisabeth Nesmith"
+date: "20 April 2021"
+output: 
+  html_document:
+    code_folding: hide
+    theme: sandstone
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE
+)
+```
+
+```{r packages, message=FALSE}
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(here)
+library(lubridate)
+library(plotly)
+library(mosaic)
+library(datapasta)
+library(patchwork)
+```
+
+```{r load-data, message=FALSE}
+social_media <- read_csv("~/Downloads/DC5-Data/Y*Int Social Media Data/YInt.csv") 
+static_sensor_locations <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
+static_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
+mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
+mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") %>% mutate(location = as.factor(location))
+```
+
+
+## Generate a master timeline of events and trends during the emergency response. Pay particular attention to places where the timing of events is uncertain, and note which data underlies that uncertainty.
+
+## Emergency responders will base their initial response on the earthquake shake map, but their response may change based on damage reports from citizens on the ground. How would you prioritize neighborhoods for response?
+
+## Compare the reliability of neighborhood reports. Which neighborhoods are providing reliable reports? Provide a rationale for your response.
+
+## Compare radiation measurements over time from both static and mobile sensors to identify areas where elevated radiation is detected. How does this change over time? How should the risk of radiation damage be mitigated?
+
+## Characterize conditions across the city, and recommend how resources should be allocated at 5 hours and 30 hours after the earthquake. Include evidence from the data to support these recommendations. Consider how to allocate resources such as road crews, sewer repair crews, power, and rescue teams.
+
+## Identify any times when conditions change in a way that warrants a re-allocation of city resources. What were the conditions before and after the inflection point? What locations were affected? Which resources are involved?
+
+## Take the "pulse"" of the community. How has the earthquake affected life in St. Himark? What is the community experiencing?
+
+## Are there instances where a pattern emerges in one set of data before it presents itself in another? Could one data stream be used to predict events in the others? Provide examples you identify.
+
+## The data in this challenge can be analyzed either as a static collection or as a dynamic stream of data, as it would occur in a real emergency. Can you find a way to bring your analysis online to fuse multiple data streams together as events are unfolding?
