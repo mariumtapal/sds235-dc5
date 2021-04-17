@@ -12,11 +12,11 @@ library(plotly)
 ```
 
 ```{r load data}
-social_media <- read_csv("~/Downloads/SDS 235/DC5-Data/Y*Int Social Media Data/YInt.csv") 
-static_sensor_locations <- read_csv("~/Downloads/SDS 235/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
-static_sensor_readings <- read_csv("~/Downloads/SDS 235/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
-mobile_sensor_readings <- read_csv("~/Downloads/SDS 235/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
-mc1_reports_data <- read_csv("~/Downloads/SDS 235/DC5-Data/Damage Reports/mc1-reports-data.csv") 
+social_media <- read_csv("data/Y*Int Social Media Data/YInt.csv") 
+static_sensor_locations <- read_csv("data/Sensor Data and Maps/StaticSensorLocations.csv") 
+static_sensor_readings <- read_csv("data/Sensor Data and Maps/StaticSensorReadings.csv") 
+mobile_sensor_readings <- read_csv("data/Sensor Data and Maps/MobileSensorReadings.csv") 
+mc1_reports_data <- read_csv("data/Damage Reports/mc1-reports-data.csv") 
 ```
 
 Questions to answer:
@@ -43,14 +43,12 @@ mc1_averages <- aggregate(mc1_reports_data[, 2:7], list(mc1_reports_data$locatio
 #visualize the averages for each category across locations
 
 #sewer and water plot
-fig <- plot_ly(
+p1 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$sewer_and_water,
-  name = "Citizen-Reported Sewer and Water Damage by Neighborhood",
-  type = "bar"
-)
+  type = "bar") %>% 
+  layout(title = "Citizen-Reported Sewer and Water Damage by Neighborhood")
 
-fig
 ```
 
 Looking at the shake map, it appears that locations 3, 4, 7, and 12 would have experienced the brunt of the quake. Locations 1, 5, 6, and 9 would be some of the least affected.
@@ -59,64 +57,70 @@ Location 7 had the highest average of reported damage to sewer and water at 8.5,
 
 ```{r}
 #power plot
-plot_ly(
+p2 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$power,
-  name = "Citizen-Reported Power Damage by Neighborhood",
-  type = "bar"
-)
+  type = "bar") %>% 
+  layout(title = "Citizen-Reported Power Damage by Neighborhood")
+
 ```
 
 Neighborhood 3 had the highest average rating at 8.46, followed by 7 at 7.83, 11 at 7.69, and 10 at 7.61.
 ```{r}
 #roads and bridges plot
-plot_ly(
+p3 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$roads_and_bridges,
-  name = "Citizen-Reported Roads and Bridges Damage by Neighborhood",
-  type = "bar"
-)
+  type = "bar") %>% 
+  layout(title = "Citizen-Reported Roads and Bridges Damage by Neighborhood")
 ```
 
 8 has highest average of road and bridge damage at 7.65, followed by 3 at 7.26, 9 at 6.59, and 14 at 6.27.
 
 ```{r}
 #medical plot
-plot_ly(
+p4 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$medical,
-  name = "Citizen-Reported Medical Damage by Neighborhood",
-  type = "bar"
-)
+  type = "bar") %>% 
+  layout(title = "Citizen-Reported Medical Damage by Neighborhood")
 ```
 
 3 has highest average of medical damage at 7.05, followed by 7 at 6, 15 at 5.53, and 4 at 5.42.
 
 ```{r}
 #buildings plot
-plot_ly(
+p5 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$buildings,
-  name = "Citizen-Reported Building Damage by Neighborhood",
-  type = "bar"
-)
+  type = "bar") %>% 
+  layout(title = "Citizen-Reported Building Damage by Neighborhood")
 ```
 
 10 is highest at 6.35, followed by 9 at 6.16, 3 at 5.83, and 8 at 5.78. 
 
 ```{r}
 #shake intensity plot
-plot_ly(
+p6 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$shake_intensity,
-  name = "Citizen-Reported Shake Intensity by Neighborhood",
-  type = "bar"
-)
+  type = "bar") %>% 
+  layout(title = "Citizen-Reported Shake Intensity by Neighborhood")
 ```
 
 As we would suspect from the shake map, 3, 4, 7, and 12 have the highest shake intensities by far. 
 
 It seems like 3 is a pretty reliable neighborhood, as it experienced the brunt of the quake and was consistently in the top averages for each damage category. 7 and 8 were also up there a lot, which makes sense as they were also in range of the shake map. However, 4 and 12 were two of the neighborhoods who felt the quake most strongly but consistently reported lower damages. Additionally, 9 was in the top numbers a lot but was one of the locations that would have been least affected. 
+
+![Alt text](data/Damage Reports/mc1-majorquake-shakemap.png)
+
+```{r}
+library(patchwork)
+p1 + p2 + p3 + p4 + p5 + p6 +
+  plot_layout(ncol = 3)
+```
+
+
 
 ```{r}
 #scaling map to coordinates and plotting locations of static sensors
