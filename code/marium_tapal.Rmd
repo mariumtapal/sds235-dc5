@@ -17,12 +17,26 @@ social_media <- read_csv("~/Downloads/DC5-Data/Y*Int Social Media Data/YInt.csv"
 static_sensor_locations <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
 static_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
 mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
-mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") %>% mutate(location = as.factor(location))
+mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") %>% 
+  mutate(location = as.factor(location))
 ```
 
 
 ```{r}
-ggplotly(ggplot(mc1_reports_data, aes(x = time, y = shake_intensity)) + facet_wrap(~location) + geom_line())
+ggplot(mc1_reports_data, aes(x = time, y = shake_intensity)) + 
+           geom_line() + 
+           labs(title = "Overall Reported Shake Intensity in St. Himark",
+                x = "Time", y = "Shake Intensity") + 
+           theme_minimal() +
+           theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+ggplotly(ggplot(mc1_reports_data, aes(x = time, y = shake_intensity)) + 
+           geom_line() + 
+           labs(title = "Reported Shake Intensity by Locations in St. Himark",
+                x = "Time", y = "Shake Intensity") + 
+           theme_minimal() +
+           theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
+           facet_wrap(~location))
 ```
 
 Location 3, 4, 12, 18 have the highest readings. Which corresponds to the map (StHimarkLabeledMap.png) where the quake was felt
@@ -33,35 +47,48 @@ Location 3, 4, 12, 18 have the highest readings. Which corresponds to the map (S
 # change data to long format for heat map
 mc1_reports_data_long <- reshape2::melt(mc1_reports_data, id.vars = c("time", "location"))
 
-# change time to hourly
-#mc1_reports_data_long$time <- round_date(mc1_reports_data_long$time, unit = "hour")
+# handling missing and repeated data
+heat_map_data <- mc1_reports_data_long %>%
+  group_by(time, location, variable) %>%
+  mutate(value = round(mean(value, na.rm = TRUE), 2)) %>%
+  unique()
+
 
 # overall
-ggplot(mc1_reports_data_long, aes(time, variable)) +                 
-  geom_tile(aes(fill = value)) + scale_fill_gradient(low = "blue", high = "red") + 
-  labs(title = "Heat Map of Report Variables Over Time", x = "Time", y = "Report Variable") + theme_minimal()
+ggplot(heat_map_data, aes(time, variable)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(title = "Report Variables Over Time", x = "Time", y = "Report Variable", fill = "Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
 
 # by location
-ggplot(mc1_reports_data_long, aes(time, variable)) +                 
-  geom_tile(aes(fill = value)) + facet_wrap(~location) + scale_fill_gradient(low = "blue", high = "red") + 
-  labs(title = "Heat Map of Report Variables Over Time", x = "Time", y = "Report Variable") + theme_minimal()
+ggplot(heat_map_data, aes(time, variable)) +
+  geom_tile(aes(fill = value)) +
+  facet_wrap(~location) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(title = "Report Variables Over Time by Location", x = "Time", y = "Report Variable", fill = " Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
+# by location
+ggplot(heat_map_data, aes(time, location)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(title = "Report Variables Over Time by Location", 
+       x = "Time", y = "Location", fill = " Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 
-# by location - maybe do this for particular hours to assess damage?
-# ggplot(mc1_reports_data_long, aes(variable, location)) +                 
-#   geom_tile(aes(fill = value))
+# by variable
+ggplot(heat_map_data, aes(time, location)) +
+  geom_tile(aes(fill = value)) +
+  facet_wrap(~variable) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(title = "Location Over Time by Report Variables", 
+       x = "Time", y = "Location", fill = " Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
-can answer: 
-
-Emergency responders will base their initial response on the earthquake shake map, but their response may change based on damage reports from citizens on the ground. How would you prioritize neighborhoods for response?
-
-Compare the reliability of neighborhood reports. Which neighborhoods are providing reliable reports? Provide a rationale for your response.
-
-Compare radiation measurements over time from both static and mobile sensors to identify areas where elevated radiation is detected. How does this change over time? How should the risk of radiation damage be mitigated?
-
-Characterize conditions across the city, and recommend how resources should be allocated at 5 hours and 30 hours after the earthquake. Include evidence from the data to support these recommendations. Consider how to allocate resources such as road crews, sewer repair crews, power, and rescue teams.
-
-Identify any times when conditions change in a way that warrants a re-allocation of city resources. What were the conditions before and after the inflection point? What locations were affected? Which resources are involved?
-
-The data in this challenge can be analyzed either as a static collection or as a dynamic stream of data, as it would occur in a real emergency. Can you find a way to bring your analysis online to fuse multiple data streams together as events are unfolding? 
 
