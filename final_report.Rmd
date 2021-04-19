@@ -29,11 +29,12 @@ library(patchwork)
 ```
 
 ```{r load-data, message=FALSE}
-social_media <- read_csv("~/Downloads/DC5-Data/Y*Int Social Media Data/YInt.csv") 
-static_sensor_locations <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
-static_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
-mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
-mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") %>% mutate(location = as.factor(location))
+social_media <- read_csv("~/Downloads/DC5-Data/Y*Int Social Media Data/YInt.csv")
+static_sensor_locations <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv")
+static_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv")
+mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv")
+mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") %>%
+  mutate(location = as.factor(location))
 ```
 
 
@@ -41,16 +42,143 @@ mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-da
 
 ## Emergency responders will base their initial response on the earthquake shake map, but their response may change based on damage reports from citizens on the ground. How would you prioritize neighborhoods for response?
 
+```{r}
+# change data to long format for heat map
+mc1_reports_data_long <- reshape2::melt(mc1_reports_data, id.vars = c("time", "location"))
+
+# handling missing and repeated data
+heat_map_data <- mc1_reports_data_long %>%
+  group_by(time, location, variable) %>%
+  mutate(value = round(mean(value, na.rm = TRUE), 2)) %>%
+  unique()
+
+# by location
+shake_data <- heat_map_data %>% 
+  filter(variable == "shake_intensity")
+
+ggplot(shake_data, aes(time, location)) +
+  geom_tile(aes(fill = value)) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(
+    title = "Shake Intensity Over Time by Location",
+    x = "Time", y = "Location", fill = " Value"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Based on the chart above of the shake intensity reported over time in the 19 St. Himark locations, the most red locations (indicative of higher damage) should receive help first. Locations 4, 7, 12, and 18 should receive aid,
+
 ## Compare the reliability of neighborhood reports. Which neighborhoods are providing reliable reports? Provide a rationale for your response.
+
+```{r}
+# by location
+ggplot(heat_map_data, aes(time, variable)) +
+  geom_tile(aes(fill = value)) +
+  facet_wrap(~location) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(title = "Report Variables Over Time by Location", x = "Time", y = "Report Variable", fill = " Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+In this plot above, we see the reports of all 19 locations over the 5 day period. It is apparent that some locations have less reliable reporting. For example, location 4, 7, 10, and 17 have sparse maps indicating that there was missing data. 
+
+Similarly, we can see that locations 2, 6, and 15 have the most regular and reliable reporting.
+
+In making this plot, we realized that there was missing and corrupt report data in many locations. We dealt with this by: 
+
+- **missing data:** we dropped the values
+- **corrupt data:** we defined this as the repeated values for the same location and variable at the same time. We took the average of the multiple reports of the same reading.
 
 ## Compare radiation measurements over time from both static and mobile sensors to identify areas where elevated radiation is detected. How does this change over time? How should the risk of radiation damage be mitigated?
 
 ## Characterize conditions across the city, and recommend how resources should be allocated at 5 hours and 30 hours after the earthquake. Include evidence from the data to support these recommendations. Consider how to allocate resources such as road crews, sewer repair crews, power, and rescue teams.
 
+```{r}
+time_data <- heat_map_data %>% 
+  filter(time >= "2020-04-08 09:35:00" & time <= "2020-04-08 10:35:00")
+
+ggplot(time_data, aes(time, location)) +
+  geom_tile(aes(fill = value)) +
+  facet_wrap(~variable) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(
+    title = "Location Over Time by Report Variables",
+    x = "Time", y = "Location", fill = " Value"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+We guess that the major quake happened around 8:35 am on April 8th. 5 hours and 30 minutes later is approximately 2:05 pm on the same day. The above plot shows the reporting from 2:05 pm $\pm$ 30 minutes. 
+
+According to this chart, and excluding the missing data, it looks like power is the most affected, followed by roads and bridges, sewer and water and buildings. Therefore, the most resources should be allocated to power and the rest to road crews, rescue teams and sewer repair crews!
+
 ## Identify any times when conditions change in a way that warrants a re-allocation of city resources. What were the conditions before and after the inflection point? What locations were affected? Which resources are involved?
 
+- pre shock
+- major quake
+- after shock
+
 ## Take the "pulse"" of the community. How has the earthquake affected life in St. Himark? What is the community experiencing?
+
+Based on preliminary analysis of community sentiment, it seems like people are shaken by the earthquake and are skeptical about the function and safety of the nuclear power plant.  
+
+```{r bigram analysis}
+# finding all bigrams with stop words
+bigrams <- social_media %>%
+  unnest_tokens(bigram, message, token = "ngrams", n = 2)
+
+# separating bigrams into two columns
+bigrams_separated <- bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+# filters out stop words in bigrams
+bigrams_filtered <- bigrams_separated %>%
+   filter(!word1 %in% stop_words$word) %>%
+   filter(!word2 %in% stop_words$word)
+
+# common bigrams without stop words
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ") %>%
+  count(bigram, sort = TRUE) %>%
+  slice(1:20) %>%
+  filter(rank(desc(n))>0)
+
+# could use date and location as input variables for shiny
+freq_bi_plot <-ggplot(data = bigrams_united, aes(x = reorder(bigram, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Bigrams That Appeared Most Frequently in Posts ", x = "Bigram", y = "Number of Occurances Accross All Posts") 
+freq_bi_plot
+```
+
+With further analysis, it appears that the words "nuclear" and "nuclear power" most frequently appeared in posts made from the Downtown, Weston and Palace Hills areas.  These locations differ from location analysis of all posts (including ones that don't have the word "nuclear" in them) in that Palace Hills was the seventh most frquently posted location instead of third.  
+
+```{r locations where nuclear appeared most frequently}
+nuclear <- social_media %>%
+  filter(str_detect(message, "nuclear power"))
+nuclear
+
+freq_location_n <- nuclear %>%
+  group_by(location) %>%
+  count(location, sort = TRUE)
+
+# could use date as input variable for shiny
+freq_location_plot_n <-ggplot(data = freq_location_n, aes(x = reorder(location, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Locations Where Posts Including the Word \'nuclear\' \nWere Most Frequently Shared", x = "Location", y = "Number of Posts per Location") 
+freq_location_plot_n
+```
+
+Another important detail we noticed is that there were a number of posts discussing hesitancy around the effectiveness of nuclear power plants and nuclear energy production.  A common sentiment among social media users was that people must protect themselves from nuclear power and that it would be difficult to afford the consequences of nuclear power.  Many users also thought that nuclear power was too expensive to be worth it.  Though, there were a small handful of users who noted that the power plant provided the community with "nice, quiet, safe jobs".  There was also a group of retired engineers and physicists who believed in the promise of nuclear power and hoped to dispel social media myths and fears surrounding nuclear power.  They went head to head with users like DerekNolan, a user with the highest number of posts, who believes the nuclear reactor company is trying to take over. 
+
+As a final note, our team found it important to filter out advertisements from the social media data set.  Much of the advertisements were posted by accounts called Syndicated and used phrases like "shaking deals" or "this deal will leave you quaking".  These ads made it difficult to perform text analysis on events surrounding the earthquake, but the advertisements were ultimately filtered out.  
 
 ## Are there instances where a pattern emerges in one set of data before it presents itself in another? Could one data stream be used to predict events in the others? Provide examples you identify.
 
 ## The data in this challenge can be analyzed either as a static collection or as a dynamic stream of data, as it would occur in a real emergency. Can you find a way to bring your analysis online to fuse multiple data streams together as events are unfolding?
+
+In this challenge we analyzed data as a static collection. However, in a real emergency, a dynamic stream of data would be useful. As data continuously flows in, some tools like a dashboard, could be helpful in flagging respective authorities if particular things need attention. For example, in our analysis above, we indicate that after the major quake almost all the report variables have an increased rating. Power and medical resources need attention so the system would alert the power companies and hospitals!

@@ -46,6 +46,14 @@ freq_acct <- social_media %>%
   filter(rank(desc(n))>0)
 freq_acct
 
+freq_acct2 <- social_media %>%
+  group_by(account, location) %>%
+  filter(account %in% c("DerekNolan", "ChloeJohnson", "______3333_____", "CantonCoordon2", "	CassieStones")) %>%
+  count(account, sort = TRUE) %>%
+  slice(1:25) %>%
+  filter(rank(desc(n))>0)
+freq_acct2
+
 # could use date and location as input variables for shiny
 freq_acct_plot <-ggplot(data = freq_acct, aes(x = reorder(account, n), y = n)) +
   geom_bar(stat = "identity") + 
@@ -116,3 +124,48 @@ freq_bi_plot <-ggplot(data = bigrams_united, aes(x = reorder(bigram, n), y = n))
   labs(title = "Bigrams That Appeared Most Frequently in Posts ", x = "Bigram", y = "Number of Occurances Accross All Posts") 
 freq_bi_plot
 ```
+
+```{r}
+nuclear <- social_media %>%
+  filter(str_detect(message, "nuclear power"))
+nuclear
+
+derek <- social_media %>%
+  filter(str_detect(account, "DerekNolan"))
+derek
+
+defects <- social_media %>%
+  filter(str_detect(message, "defects testing"))
+defects
+
+chloe <- social_media %>%
+  filter(str_detect(account, "ChloeJohnson"))
+chloe
+
+earthquake <- social_media %>%
+  filter(str_detect(message, c("earthquake")))
+earthquake 
+
+rubble <- social_media %>%
+  filter(str_detect(message, c("rubble")))
+rubble
+
+```
+
+```{r}
+nuclear <- social_media %>%
+  filter(str_detect(message, "nuclear power"))
+nuclear
+
+freq_location_n <- nuclear %>%
+  group_by(location) %>%
+  count(location, sort = TRUE)
+
+# could use date as input variable for shiny
+freq_location_plot_n <-ggplot(data = freq_location_n, aes(x = reorder(location, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Locations Where Posts Including the Word \'nuclear\' \nWere Most Frequently Shared", x = "Location", y = "Number of Posts per Location") 
+freq_location_plot_n
+```
+
