@@ -46,8 +46,8 @@ mc1_averages <- aggregate(mc1_reports_data[, 2:7], list(mc1_reports_data$locatio
 p1 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$sewer_and_water,
-  type = "bar") %>% 
-  layout(title = "Citizen-Reported Sewer and Water Damage by Neighborhood")
+  name = "Sewer and Water",
+  type = "bar")
 
 ```
 
@@ -60,9 +60,8 @@ Location 7 had the highest average of reported damage to sewer and water at 8.5,
 p2 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$power,
-  type = "bar") %>% 
-  layout(title = "Citizen-Reported Power Damage by Neighborhood")
-
+  name = "Power",
+  type = "bar") 
 ```
 
 Neighborhood 3 had the highest average rating at 8.46, followed by 7 at 7.83, 11 at 7.69, and 10 at 7.61.
@@ -71,8 +70,8 @@ Neighborhood 3 had the highest average rating at 8.46, followed by 7 at 7.83, 11
 p3 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$roads_and_bridges,
-  type = "bar") %>% 
-  layout(title = "Citizen-Reported Roads and Bridges Damage by Neighborhood")
+  name = "Roads and Bridges",
+  type = "bar") 
 ```
 
 8 has highest average of road and bridge damage at 7.65, followed by 3 at 7.26, 9 at 6.59, and 14 at 6.27.
@@ -82,8 +81,8 @@ p3 <- plot_ly(
 p4 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$medical,
-  type = "bar") %>% 
-  layout(title = "Citizen-Reported Medical Damage by Neighborhood")
+  name = "Medical",
+  type = "bar") 
 ```
 
 3 has highest average of medical damage at 7.05, followed by 7 at 6, 15 at 5.53, and 4 at 5.42.
@@ -93,8 +92,8 @@ p4 <- plot_ly(
 p5 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$buildings,
-  type = "bar") %>% 
-  layout(title = "Citizen-Reported Building Damage by Neighborhood")
+  name = "Buildings",
+  type = "bar") 
 ```
 
 10 is highest at 6.35, followed by 9 at 6.16, 3 at 5.83, and 8 at 5.78. 
@@ -104,8 +103,9 @@ p5 <- plot_ly(
 p6 <- plot_ly(
   x = mc1_averages$Group.1,
   y = mc1_averages$shake_intensity,
+  name = "Shake Intensity",
   type = "bar") %>% 
-  layout(title = "Citizen-Reported Shake Intensity by Neighborhood")
+  layout(title = "Citizen-Reported Damage by Neighborhood")
 ```
 
 As we would suspect from the shake map, 3, 4, 7, and 12 have the highest shake intensities by far. 
@@ -115,9 +115,7 @@ It seems like 3 is a pretty reliable neighborhood, as it experienced the brunt o
 ![Alt text](data/Damage Reports/mc1-majorquake-shakemap.png)
 
 ```{r}
-library(patchwork)
-p1 + p2 + p3 + p4 + p5 + p6 +
-  plot_layout(ncol = 3)
+subplot(p1, p2, p3, p4, p5, p6, nrows=2)
 ```
 
 
@@ -171,9 +169,8 @@ static_averages <- static_sensor_readings %>%
 fig2 <- plot_ly(
   x = static_averages$Group.1,
   y = static_averages$average,
-  name = "Average Radiation Levels of Static Sensors by Neighborhood",
-  type = "bar"
-)
+  type = "bar") %>% 
+  layout(title = "Average Radiation Levels of Static Sensors by Neighborhood")
 
 fig2
 ```
