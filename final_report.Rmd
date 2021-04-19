@@ -91,7 +91,206 @@ In making this plot, we realized that there was missing and corrupt report data 
 - **missing data:** we dropped the values
 - **corrupt data:** we defined this as the repeated values for the same location and variable at the same time. We took the average of the multiple reports of the same reading.
 
+Additionally, to get a sense of the reported damage for each neighborhood, we calculated the average value of damage (on a scale of 1 - 10) per neighborhood for each of six categories: Sewer and Water damage, Power damage, Road and Bridge damage, Medical damage, Building damage, and Shake Intensity. We then compared these values with the shake map from April 8th. 
+
+![Alt text](mc1-majorquake-shakemap.png)
+
+Looking at the shake map, it appears that locations 3, 4, 7, and 12 would have experienced the brunt of the quake. Locations 1, 5, 6, and 9 would be some of the least affected.
+
+```{r}
+#looking at MC1 reports
+#grouping by location
+#calculating average of each variable (average across 4/6-4/11)
+
+mc1_averages <- aggregate(mc1_reports_data[, 2:7], list(mc1_reports_data$location), mean, na.rm = TRUE)
+```
+
+```{r}
+#visualize the averages for each category across locations
+
+#sewer and water plot
+p1 <- plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$sewer_and_water,
+  name = "Sewer and Water",
+  type = "bar")
+#power plot
+p2 <- plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$power,
+  name = "Power",
+  type = "bar") 
+#roads and bridges plot
+p3 <- plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$roads_and_bridges,
+  name = "Roads and Bridges",
+  type = "bar")
+#medical plot
+p4 <- plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$medical,
+  name = "Medical",
+  type = "bar") 
+#buildings plot
+p5 <- plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$buildings,
+  name = "Buildings",
+  type = "bar") 
+#shake intensity plot
+p6 <- plot_ly(
+  x = mc1_averages$Group.1,
+  y = mc1_averages$shake_intensity,
+  name = "Shake Intensity",
+  type = "bar") %>% 
+  layout(title = "Citizen-Reported Damage by Neighborhood")
+```
+
+```{r}
+subplot(p1, p2, p3, p4, p5, p6, nrows=2)
+```
+
+It seems like 3 is a pretty reliable neighborhood, as it experienced the brunt of the quake and was consistently in the top averages for each damage category. 7 and 8 were also up there a lot, which makes sense as they were also in range of the shake map. However, 4 and 12 were two of the neighborhoods who felt the quake most strongly but consistently reported lower damages. Additionally, 9 was in the top numbers a lot but was one of the locations that would have been least affected. Thus, it would appear that 3, 7, and 8 were some of the most reliable reporters, while 4, 12, and 9 were some of the least reliable. 
+
 ## Compare radiation measurements over time from both static and mobile sensors to identify areas where elevated radiation is detected. How does this change over time? How should the risk of radiation damage be mitigated?
+
+### Static Sensor Data
+
+We first wanted to map the static sensor locations onto the map of the neighborhoods.
+
+```{r}
+#scaling map to coordinates and plotting locations of static sensors
+fig1 <- static_sensor_locations %>%
+  plot_ly(
+    x = ~Long,
+    y = ~Lat,
+    type = "scatter",
+    mode = "markers",
+    text = ~`Sensor-id`
+  ) %>%
+  layout(
+    title = "Locations of Static Sensors",
+    images = list(
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      xref = "x",
+      yref = "y",
+      x = -120,
+      y = 0.2385,
+      sizex = 0.2883,
+      sizey = 0.2385,
+      sizing = "stretch",
+      opacity = 1,
+      layer = "below"
+    )
+  )
+
+fig1
+```
+
+As you can see, not every neighborhood is represented by a static sensor, and Safe Town (neighborhood 4) has three sensors, but we still wanted to look at the average levels of radiation recorded at each sensor.
+
+```{r}
+#wrangling static sensor readings to get averages for each sensor across the five days (4/6 - 4/10) and creating new variable to correspond to location in mc1 reports, then joining by location
+
+static_averages <- static_sensor_readings %>% 
+  mutate(Group.1 = if_else(`Sensor-id` == 1, 1, 
+                           if_else(`Sensor-id` == 4, 6,
+                                   if_else(`Sensor-id` == 6, 5,
+                                           if_else(`Sensor-id` == 9, 3,
+                                                   if_else(`Sensor-id` == 11, 9,
+                                                           if_else(`Sensor-id` == 14, 13, 4))))))) %>%
+  group_by(Group.1) %>% 
+  summarize(average = mean(Value)) %>% 
+  right_join(mc1_averages, by = 'Group.1')
+```
+
+
+```{r}
+#visualize averages of static sensor data by location
+fig2 <- plot_ly(
+  x = static_averages$Group.1,
+  y = static_averages$average,
+  type = "bar") %>% 
+  layout(title = "Average Radiation Levels of Static Sensors by Neighborhood")
+
+fig2
+```
+
+The neighborhood with the highest average radiation over the course of the five days, according to the static sensor data, is neighborhood 3 at 17.103 cpm, followed by neighborhood 4 at 16.245 cpm and neighborhood 9 at 15.835 cpm. However, because the static sensors are only located in neighborhoods 1, 3, 4, 5, 6, 9, and 13, this doesn't give us a full picture of the radiation at every neighborhood. It does make sense that neighborhoods 3 and 4 were most affected though, as they have pretty close proximity to the nuclear power plant.
+
+To learn more about how radiation levels changed over time, we looked at the cumulative sensor readings for each day from April 6th to April 10th.
+
+```{r}
+#join static sensor locations with static sensor readings
+static_sensors <- static_sensor_readings %>% 
+  inner_join(static_sensor_locations, by = 'Sensor-id') %>%
+  mutate(sensor_id = as.character(`Sensor-id`)) %>% 
+  mutate(year = lubridate::year(Timestamp), 
+                month = lubridate::month(Timestamp), 
+                day = lubridate::day(Timestamp)) 
+```
+
+```{r}
+#ggplot of sensors
+
+fig4 <- ggplot(data = static_sensors, mapping = aes(x = day, y = Value, color = sensor_id)) +
+  geom_line()+
+  facet_wrap(~sensor_id)
+
+ggplotly(p = fig4)
+```
+
+Sensor 1 had the highest recorded radiation on April 9th. Sensor 11 had the highest recorded radiation on April 6th. Sensor 12, located in Safe Town (where the nuclear plant is), had the highest recorded radiation on April 9th. Sensor 13, also located in Safe Town, had the highest recorded radiation on April 7th, but levels were relatively even from the 7th through the 10th. Sensor 14 had highest levels on April 8th. Sensor 15, the sensor closest to the nuclear plant, had highest levels on April 8th. Sensor 4 had highest radiation on April 10th. Sensor 6 had highest levels on April 10th, though this was still comparatively low. Finally, Sensor 9 had the highest levels on April 9th, but they were also very high on the 7th. 
+
+Sensors 11, 13, 14, 15, and 9 all had peaks on the earlier side (between the 6th and the 8th) compared to the others. This makes sense because all of these sensors are in closer proximity to the plant, and therefore would be exposed to radiation earlier on. It therefore feels reasonable to assume the quake happened some time on April 8th. Sensor 11 is a little strange, though, because it is farther from the plant than 13, 14, 15, and 9 but had very high levels on the 6th and 7th, then very low levels on the 8th.
+
+### Mobile Sensor Data
+
+Because there were so many data points for the mobile sensor readings, we condensed them to only include every 24 rows, which would roughly be a reading ever two minutes instead of every five seconds. Then we randomly chose a sensor number to look at, number 10. By looking at the shake maps and the graph of the static sensors, we decided April 8th would be a good day to look at radiation activity.
+
+```{r}
+#looking at mobile sensor data
+#picking random number of sensor to look at
+set.seed(35)
+sample (c(1:50), size=1)
+
+#make new mobile sensor data set that only includes rows every 2 minutes
+mobile_condensed = mobile_sensor_readings[seq(1, nrow(mobile_sensor_readings), 24), ]
+
+#filter new dataset to just include #10 and April 8th
+mobile_condensed %>% 
+  filter(`Sensor-id` == 10) %>% 
+  filter(Timestamp >= '2020-04-08 00:00:00' & Timestamp < '2020-04-09 00:00:00') %>% 
+  mutate(Timestamp = as.character(Timestamp)) %>% 
+  plot_ly(
+    x = ~Long,
+    y = ~Lat,
+    type = "scatter",
+    mode = "markers",
+    text = ~`Value`,
+    size = ~Value,
+    colors = 'black',
+    frame = ~Timestamp
+  ) %>%
+  layout(
+    title = "Mobile Sensor 10 Readings on April 8th",
+    images = list(
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      xref = "x",
+      yref = "y",
+      x = -120,
+      y = 0.2385,
+      sizex = 0.2883,
+      sizey = 0.2385,
+      sizing = "stretch",
+      opacity = 1,
+      layer = "below"
+    )
+  )
+```
+
+At 16:40 on April 8th, the sensor readings start to increase dramatically, going from 21 cpu to 300 five minutes later to over 1000 shortly after 17:00. It continues to hover around 1300 cpu until about 20:53, when it starts to drop. It continues to drop until 21:57, when this sensor finally moves. This whole time it has been on the edge of Old Town and Safe Town, pretty close to where the nuclear plant is. It would make sense, then, that the earthquake happened around or slightly before 16:40 on the 8th.
 
 ## Characterize conditions across the city, and recommend how resources should be allocated at 5 hours and 30 hours after the earthquake. Include evidence from the data to support these recommendations. Consider how to allocate resources such as road crews, sewer repair crews, power, and rescue teams.
 
