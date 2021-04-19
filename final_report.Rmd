@@ -26,6 +26,14 @@ library(plotly)
 library(mosaic)
 library(datapasta)
 library(patchwork)
+library(stringr)
+library(readr)
+library(data.table)
+library(vroom)
+library(readtext)
+library(textrank)
+library(tidytext)
+library(tidyr)
 ```
 
 ```{r load-data, message=FALSE}
@@ -353,7 +361,7 @@ freq_bi_plot <-ggplot(data = bigrams_united, aes(x = reorder(bigram, n), y = n))
 freq_bi_plot
 ```
 
-With further analysis, it appears that the words "nuclear" and "nuclear power" most frequently appeared in posts made from the Downtown, Weston and Palace Hills areas.  These locations differ from location analysis of all posts (including ones that don't have the word "nuclear" in them) in that Palace Hills was the seventh most frquently posted location instead of third.  
+With further analysis, it appears that the words "nuclear" and "nuclear power" most frequently appeared in posts made from the Downtown, Weston and Palace Hills areas.  These locations differ from location analysis of all posts (including ones that don't have the word "nuclear" in them) in that Palace Hills was the seventh most frequently posted location instead of third.  
 
 ```{r locations where nuclear appeared most frequently}
 nuclear <- social_media %>%
