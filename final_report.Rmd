@@ -123,6 +123,60 @@ According to this chart, and excluding the missing data, it looks like power is 
 
 ## Take the "pulse"" of the community. How has the earthquake affected life in St. Himark? What is the community experiencing?
 
+Based on preliminary analysis of community sentiment, it seems like people are shaken by the earthquake and are skeptical about the function and safety of the nuclear power plant.  
+
+```{r bigram analysis}
+# finding all bigrams with stop words
+bigrams <- social_media %>%
+  unnest_tokens(bigram, message, token = "ngrams", n = 2)
+
+# separating bigrams into two columns
+bigrams_separated <- bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+# filters out stop words in bigrams
+bigrams_filtered <- bigrams_separated %>%
+   filter(!word1 %in% stop_words$word) %>%
+   filter(!word2 %in% stop_words$word)
+
+# common bigrams without stop words
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ") %>%
+  count(bigram, sort = TRUE) %>%
+  slice(1:20) %>%
+  filter(rank(desc(n))>0)
+
+# could use date and location as input variables for shiny
+freq_bi_plot <-ggplot(data = bigrams_united, aes(x = reorder(bigram, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Bigrams That Appeared Most Frequently in Posts ", x = "Bigram", y = "Number of Occurances Accross All Posts") 
+freq_bi_plot
+```
+
+With further analysis, it appears that the words "nuclear" and "nuclear power" most frequently appeared in posts made from the Downtown, Weston and Palace Hills areas.  These locations differ from location analysis of all posts (including ones that don't have the word "nuclear" in them) in that Palace Hills was the seventh most frquently posted location instead of third.  
+
+```{r locations where nuclear appeared most frequently}
+nuclear <- social_media %>%
+  filter(str_detect(message, "nuclear power"))
+nuclear
+
+freq_location_n <- nuclear %>%
+  group_by(location) %>%
+  count(location, sort = TRUE)
+
+# could use date as input variable for shiny
+freq_location_plot_n <-ggplot(data = freq_location_n, aes(x = reorder(location, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Locations Where Posts Including the Word \'nuclear\' \nWere Most Frequently Shared", x = "Location", y = "Number of Posts per Location") 
+freq_location_plot_n
+```
+
+Another important detail we noticed is that there were a number of posts discussing hesitancy around the effectiveness of nuclear power plants and nuclear energy production.  A common sentiment among social media users was that people must protect themselves from nuclear power and that it would be difficult to afford the consequences of nuclear power.  Many users also thought that nuclear power was too expensive to be worth it.  Though, there were a small handful of users who noted that the power plant provided the community with "nice, quiet, safe jobs".  There was also a group of retired engineers and physicists who believed in the promise of nuclear power and hoped to dispel social media myths and fears surrounding nuclear power.  They went head to head with users like DerekNolan, a user with the highest number of posts, who believes the nuclear reactor company is trying to take over. 
+
+As a final note, our team found it important to filter out advertisements from the social media data set.  Much of the advertisements were posted by accounts called Syndicated and used phrases like "shaking deals" or "this deal will leave you quaking".  These ads made it difficult to perform text analysis on events surrounding the earthquake, but the advertisements were ultimately filtered out.  
+
 ## Are there instances where a pattern emerges in one set of data before it presents itself in another? Could one data stream be used to predict events in the others? Provide examples you identify.
 
 ## The data in this challenge can be analyzed either as a static collection or as a dynamic stream of data, as it would occur in a real emergency. Can you find a way to bring your analysis online to fuse multiple data streams together as events are unfolding?
