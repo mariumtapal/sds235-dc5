@@ -1,0 +1,171 @@
+---
+title: "Lauren Low"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+library(here)
+library(stringr)
+library(readr)
+library(data.table)
+library(vroom)
+library(readtext)
+library(textrank)
+library(tidytext)
+library(tidyr)
+```
+
+```{r load data}
+social_media <- read_csv("~/Desktop/DC5-Data/Y*Int Social Media Data/YInt.csv") 
+static_sensor_locations <- read_csv("~/Desktop/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv")
+static_sensor_readings <- read_csv("~/Desktop/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
+mobile_sensor_readings <- read_csv("~/Desktop/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
+mc1_reports_data <- read_csv("~/Desktop/DC5-Data/Damage Reports/mc1-reports-data.csv") 
+```
+
+```{r determine most frequent locations posts were made from}
+freq_location <- social_media %>%
+  group_by(location) %>%
+  count(location, sort = TRUE)
+freq_location
+
+# could use date as input variable for shiny
+freq_location_plot <-ggplot(data = freq_location, aes(x = reorder(location, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Locations Where Post Were Most Frequently Shared", x = "Location", y = "Number of Posts per Location") 
+freq_location_plot
+```
+
+```{r determine most frequent account}
+# might want to consider taking out accounts with the word syndicated
+freq_acct <- social_media %>%
+  count(account, sort = TRUE) %>%
+  slice(1:25) %>%
+  filter(rank(desc(n))>0)
+freq_acct
+
+freq_acct2 <- social_media %>%
+  group_by(account, location) %>%
+  filter(account %in% c("DerekNolan", "ChloeJohnson", "______3333_____", "CantonCoordon2", "	CassieStones")) %>%
+  count(account, sort = TRUE) %>%
+  slice(1:25) %>%
+  filter(rank(desc(n))>0)
+freq_acct2
+
+# could use date and location as input variables for shiny
+freq_acct_plot <-ggplot(data = freq_acct, aes(x = reorder(account, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Accounts That Posted Most Frequently", x = "Account", y = "Number of Posts per Account") 
+freq_acct_plot
+```
+
+```{r common words}
+word_col <- social_media %>% 
+   unnest_tokens(output = word, input = message) 
+ 
+# removes stop words like "the", "and", "before", "after", "such", "as", etc.
+no_stops  <- word_col  %>%
+  anti_join(stop_words)
+
+# finds most common word and counts
+freq_words <- no_stops %>%
+  count(word, sort = TRUE) %>%
+  slice(1:25) %>%
+  filter(rank(desc(n))>0)
+freq_words
+
+# could use date and location as input variables for shiny
+freq_word_plot <-ggplot(data = freq_words, aes(x = reorder(word, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Words That Appeared Most Frequently in Posts ", x = "Word", y = "Number of Occurances Accross All Posts") 
+freq_word_plot
+```
+
+look for which day the word rumble, safe, nuclear appears the most
+
+```{r bigram analysis}
+# finding all bigrams with stop words
+bigrams <- social_media %>%
+  unnest_tokens(bigram, message, token = "ngrams", n = 2)
+
+# counting number of each bigram
+n_bigrams <- bigrams %>%
+  count(bigram, sort = TRUE)
+
+# separating bigrams into two columns
+bigrams_separated <- bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+# filters out stop words in bigrams
+bigrams_filtered <- bigrams_separated %>%
+   filter(!word1 %in% stop_words$word) %>%
+   filter(!word2 %in% stop_words$word)
+
+# new bigram counts with stop words filtered out
+n_bigram_no_stop <- bigrams_filtered %>%
+  count(word1, word2, sort = TRUE)
+
+# common bigrams without stop words
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ") %>%
+  count(bigram, sort = TRUE) %>%
+  slice(1:20) %>%
+  filter(rank(desc(n))>0)
+bigrams_united
+
+# could use date and location as input variables for shiny
+freq_bi_plot <-ggplot(data = bigrams_united, aes(x = reorder(bigram, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Bigrams That Appeared Most Frequently in Posts ", x = "Bigram", y = "Number of Occurances Accross All Posts") 
+freq_bi_plot
+```
+
+```{r}
+nuclear <- social_media %>%
+  filter(str_detect(message, "nuclear power"))
+nuclear
+
+derek <- social_media %>%
+  filter(str_detect(account, "DerekNolan"))
+derek
+
+defects <- social_media %>%
+  filter(str_detect(message, "defects testing"))
+defects
+
+chloe <- social_media %>%
+  filter(str_detect(account, "ChloeJohnson"))
+chloe
+
+earthquake <- social_media %>%
+  filter(str_detect(message, c("earthquake")))
+earthquake 
+
+rubble <- social_media %>%
+  filter(str_detect(message, c("rubble")))
+rubble
+
+```
+
+```{r}
+nuclear <- social_media %>%
+  filter(str_detect(message, "nuclear power"))
+nuclear
+
+freq_location_n <- nuclear %>%
+  group_by(location) %>%
+  count(location, sort = TRUE)
+
+# could use date as input variable for shiny
+freq_location_plot_n <-ggplot(data = freq_location_n, aes(x = reorder(location, n), y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  labs(title = "Locations Where Posts Including the Word \'nuclear\' \nWere Most Frequently Shared", x = "Location", y = "Number of Posts per Location") 
+freq_location_plot_n
+```
+
