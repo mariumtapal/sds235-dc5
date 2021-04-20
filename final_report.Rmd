@@ -52,9 +52,7 @@ City of Himark officials are looking for help to build a more complete understan
 
 ## Generate a master timeline of events and trends during the emergency response. Pay particular attention to places where the timing of events is uncertain, and note which data underlies that uncertainty.
 
-```{r, echo=FALSE, out.width='30%'}
-knitr::include_graphics(c("images/one.png", "images/two.png", "images/three.png"))
-```
+![](images/one.png) ![](images/two.png) ![](images/three.png)
 
 ## Emergency responders will base their initial response on the earthquake shake map, but their response may change based on damage reports from citizens on the ground. How would you prioritize neighborhoods for response?
 
@@ -83,7 +81,7 @@ ggplot(shake_data, aes(time, location)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
-Based on the chart above of the shake intensity reported over time in the 19 St. Himark locations, the most red locations (indicative of higher damage) should receive help first. Locations 4, 7, 12, and 18 should receive aid,
+Based on the chart above of the shake intensity reported over time in the 19 St. Himark locations, the most red locations (indicative of higher damage) should receive help first. Locations 4, 7, 12, and 18 should be prioritized.
 
 ## Compare the reliability of neighborhood reports. Which neighborhoods are providing reliable reports? Provide a rationale for your response.
 
