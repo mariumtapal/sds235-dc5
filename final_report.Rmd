@@ -54,6 +54,8 @@ City of Himark officials are looking for help to build a more complete understan
 
 ![](images/one.png) ![](images/two.png) ![](images/three.png)
 
+There seems to be an uncertainty in the medical reporting timing throughout the day, but especially midday as the reporting does not match the building data.
+
 ## Emergency responders will base their initial response on the earthquake shake map, but their response may change based on damage reports from citizens on the ground. How would you prioritize neighborhoods for response?
 
 ```{r}
