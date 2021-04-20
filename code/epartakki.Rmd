@@ -39,6 +39,3 @@ static_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/St
 mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
 mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") 
 ```
-
-
-![](images/one.png)
