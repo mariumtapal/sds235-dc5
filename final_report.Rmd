@@ -52,7 +52,9 @@ City of Himark officials are looking for help to build a more complete understan
 
 ## Generate a master timeline of events and trends during the emergency response. Pay particular attention to places where the timing of events is uncertain, and note which data underlies that uncertainty.
 
-![](images/one.png) ![](images/two.png) ![](images/three.png)
+```{r, echo=FALSE, out.width='30%'}
+knitr::include_graphics(c("images/one.png", "images/two.png", "images/three.png"))
+```
 
 ## Emergency responders will base their initial response on the earthquake shake map, but their response may change based on damage reports from citizens on the ground. How would you prioritize neighborhoods for response?
 
@@ -108,7 +110,7 @@ In making this plot, we realized that there was missing and corrupt report data 
 Additionally, to get a sense of the reported damage for each neighborhood, we calculated the average value of damage (on a scale of 1 - 10) per neighborhood for each of six categories: Sewer and Water damage, Power damage, Road and Bridge damage, Medical damage, Building damage, and Shake Intensity. We then compared these values with the shake map from April 8th. 
 
 ```{r, echo=FALSE, out.width='35%'}
-knitr::include_graphics("mc1-majorquake-shakemap.png")
+knitr::include_graphics("images/mc1-majorquake-shakemap.png")
 ```
 
 Looking at the shake map, it appears that locations 3, 4, 7, and 12 would have experienced the brunt of the quake. Locations 1, 5, 6, and 9 would be some of the least affected.
@@ -194,7 +196,7 @@ fig1 <- static_sensor_locations %>%
   layout(
     title = "Locations of Static Sensors",
     images = list(
-      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/images/StHimarkLabeledMap.png",
       xref = "x",
       yref = "y",
       x = -120,
@@ -306,7 +308,7 @@ mobile_condensed %>%
   layout(
     title = "Mobile Sensor 10 Readings on April 8th",
     images = list(
-      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/StHimarkLabeledMap.png",
+      source = "https://raw.githubusercontent.com/mariumtapal/sds235-dc5/master/images/StHimarkLabeledMap.png",
       xref = "x",
       yref = "y",
       x = -120,
