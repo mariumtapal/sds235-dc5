@@ -5,26 +5,40 @@ date: "4/8/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r packages, message=FALSE}
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(here)
+library(lubridate)
+library(plotly)
+library(mosaic)
+library(datapasta)
+library(patchwork)
+library(stringr)
+library(readr)
+library(data.table)
+library(vroom)
+library(readtext)
+library(textrank)
+library(tidytext)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(vistime)
+library(png)
+library(grid)
+library(gridExtra)
+library(knitr)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r load data}
+social_media <- read_csv("~/Downloads/DC5-Data/Y*Int Social Media Data/YInt.csv") 
+static_sensor_locations <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorLocations.csv") 
+static_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/StaticSensorReadings.csv") 
+mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/MobileSensorReadings.csv") 
+mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv") 
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+![](images/one.png)

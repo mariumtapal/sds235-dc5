@@ -34,6 +34,7 @@ library(readtext)
 library(textrank)
 library(tidytext)
 library(tidyr)
+library(ggplot2)
 ```
 
 ```{r load-data, message=FALSE}
@@ -44,8 +45,14 @@ mobile_sensor_readings <- read_csv("~/Downloads/DC5-Data/Sensor Data and Maps/Mo
 mc1_reports_data <- read_csv("~/Downloads/DC5-Data/Damage Reports/mc1-reports-data.csv")
 ```
 
+## Introduction
+
+City of Himark officials are looking for help to build a more complete understanding of the situation on the ground in regards to the disastrous earthquake that hit the area. In this report, we attempt to assess the situation utilizing the data available to us, in order to assist in the clarification of the truth.
+
 
 ## Generate a master timeline of events and trends during the emergency response. Pay particular attention to places where the timing of events is uncertain, and note which data underlies that uncertainty.
+
+![](images/one.png) ![](images/two.png) ![](images/three.png)
 
 ## Emergency responders will base their initial response on the earthquake shake map, but their response may change based on damage reports from citizens on the ground. How would you prioritize neighborhoods for response?
 
@@ -399,8 +406,11 @@ Another important detail we noticed is that there were a number of posts discuss
 
 As a final note, our team found it important to filter out advertisements from the social media data set.  Much of the advertisements were posted by accounts called Syndicated and used phrases like "shaking deals" or "this deal will leave you quaking".  These ads made it difficult to perform text analysis on events surrounding the earthquake, but the advertisements were ultimately filtered out.  
 
-## Are there instances where a pattern emerges in one set of data before it presents itself in another? Could one data stream be used to predict events in the others? Provide examples you identify.
 
 ## The data in this challenge can be analyzed either as a static collection or as a dynamic stream of data, as it would occur in a real emergency. Can you find a way to bring your analysis online to fuse multiple data streams together as events are unfolding?
 
 In this challenge we analyzed data as a static collection. However, in a real emergency, a dynamic stream of data would be useful. As data continuously flows in, some tools like a dashboard, could be helpful in flagging respective authorities if particular things need attention. For example, in our analysis above, we indicate that after the major quake almost all the report variables have an increased rating. Power and medical resources need attention so the system would alert the power companies and hospitals!
+
+## Result
+
+We can clearly see that there may have been inconsistencies in reporting due to various reasons. We hope that our searc will help officials to do their job as efficiently as possible, as they proceed to take action based on our findings. We hope that they are able to understand that the uncertainty in each source interacts with the others. Best of luck city of Himark!
